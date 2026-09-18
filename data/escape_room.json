@@ -1,0 +1,22 @@
+{
+  "room_title": "THE VAULT OF NEWTON",
+  "subtitle": "MATH CLUB RETRO ESCAPE ROOM",
+  "time_limit_seconds": 3600,
+  "intro_text": "You and your team are locked inside the archival chamber of the Mathematics Society. The heavy steel-reinforced door is sealed with a digital dial lock. Carved into the stonework are ancient algebraic symbols and formulas. The digital countdown is already ticking. Solve the sequence of math challenges to unlock the door before time runs out!",
+  "stages": [
+    {
+      "id": "stage_1",
+      "title": "THE VAULT DOOR LOCK",
+      "image": "door_lock_gb.png",
+      "flavor_text": "You approach the sealed door. A mechanical combination dial glows softly above a numeric keypad. Scratched beside the lock is a cryptic equation.",
+      "puzzle_text": "CHALLENGE 1: What is the sum of all prime numbers between 10 and 25?",
+      "accepted_answers": ["60"],
+      "hints": [
+        "HINT 1: Identify primes between 10 and 25: 11, 13, 17, 19, 23.",
+        "HINT 2: Compute 11 + 13 + 17 + 19 + 23 = 60."
+      ],
+      "penalty_seconds": 30,
+      "solved_text": "CLANK! The combination lock releases! The dial spins freely and the first heavy bolt retracts."
+    }
+  ]
+}
