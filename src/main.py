@@ -41,11 +41,12 @@ class EscapeRoomGame:
         # Load game data
         self.data = self._load_data(data_path)
         self.room_title = self.data.get("room_title", "THE ESCAPE ROOM")
+        self.prologue_screens = self.data.get("prologue_screens", [])
         self.stages = self.data.get("stages", [])
         self.current_stage_idx = 0
+        self.current_prologue_idx = 0
 
-        # State management
-        # States: "START", "PLAYING", "STAGE_SOLVED", "VICTORY", "GAME_OVER"
+        # State management: "START", "PROLOGUE", "PLAYING", "STAGE_SOLVED", "VICTORY", "GAME_OVER"
         self.state = "START"
 
         # Timer
@@ -67,7 +68,7 @@ class EscapeRoomGame:
         self.flash_alpha = 0
 
         # Cache images
-        self.stage_images = {}
+        self.images = {}
         self._load_images()
 
         # Hints tracking
@@ -80,21 +81,44 @@ class EscapeRoomGame:
             return json.load(f)
 
     def _load_images(self):
+        # Load prologue images
+        for p in self.prologue_screens:
+            img_file = p.get("image")
+            if img_file:
+                img_path = os.path.join("assets", "images", img_file)
+                if os.path.exists(img_path) and img_file not in self.images:
+                    self.images[img_file] = pygame.image.load(img_path).convert()
+
+        # Load stage images
         for stage in self.stages:
             img_file = stage.get("image")
-            img_path = os.path.join("assets", "images", img_file)
-            if os.path.exists(img_path):
-                raw_img = pygame.image.load(img_path).convert()
-                self.stage_images[stage["id"]] = raw_img
-            else:
-                print(f"[WARN] Image file not found: {img_path}")
+            if img_file:
+                img_path = os.path.join("assets", "images", img_file)
+                if os.path.exists(img_path) and img_file not in self.images:
+                    self.images[img_file] = pygame.image.load(img_path).convert()
 
     def current_stage(self) -> dict:
         if 0 <= self.current_stage_idx < len(self.stages):
             return self.stages[self.current_stage_idx]
         return {}
 
+    def current_prologue(self) -> dict:
+        if 0 <= self.current_prologue_idx < len(self.prologue_screens):
+            return self.prologue_screens[self.current_prologue_idx]
+        return {}
+
     def start_game(self):
+        """Called from START screen: routes to prologue if available, else begins play."""
+        self.input_text = ""
+        if self.prologue_screens:
+            self.state = "PROLOGUE"
+            self.current_prologue_idx = 0
+            self.sound.play_enter_click()
+        else:
+            self.start_actual_escape()
+
+    def start_actual_escape(self):
+        """Begins countdown timer and switches to Stage 1."""
         self.state = "PLAYING"
         self.timer_active = True
         self.last_tick_time = time.time()
@@ -104,22 +128,72 @@ class EscapeRoomGame:
         self.status_color = COLOR_LIGHTEST
         self.sound.play_enter_click()
 
+    def _matches_answer(self, cmd: str, accepted_answers: list) -> bool:
+        import re
+        cleaned_cmd = cmd.strip().lower()
+        if not cleaned_cmd:
+            return False
+
+        for acc in accepted_answers:
+            acc_clean = str(acc).strip().lower()
+            if cleaned_cmd == acc_clean:
+                return True
+            # Normalize commas, semicolons, and "and" into spaces
+            norm_cmd = re.sub(r'[,;:]|\band\b', ' ', cleaned_cmd)
+            norm_cmd = re.sub(r'\s+', ' ', norm_cmd).strip()
+
+            norm_acc = re.sub(r'[,;:]|\band\b', ' ', acc_clean)
+            norm_acc = re.sub(r'\s+', ' ', norm_acc).strip()
+
+            if norm_cmd == norm_acc:
+                return True
+
+            # If both have digit sequences, compare the extracted numbers
+            nums_cmd = re.findall(r'\d+', cleaned_cmd)
+            nums_acc = re.findall(r'\d+', acc_clean)
+            if nums_cmd and nums_acc and nums_cmd == nums_acc:
+                return True
+
+            # Also compare stripped alphanumeric for full text answers
+            alphanum_cmd = re.sub(r'[^a-z0-9]', '', cleaned_cmd)
+            alphanum_acc = re.sub(r'[^a-z0-9]', '', acc_clean)
+            if alphanum_cmd and alphanum_cmd == alphanum_acc:
+                return True
+        return False
+
     def process_command(self, cmd: str):
         cmd = cmd.strip()
-        if not cmd:
-            return
 
         if self.state == "START":
-            if cmd.lower() in ["start", "begin", "play", "go", "enter", "yes"]:
-                self.start_game()
-            elif cmd.lower() in ["exit", "quit"]:
+            if cmd.lower() in ["exit", "quit"]:
                 pygame.quit()
                 sys.exit(0)
+            self.start_game()
+            return
+
+        if self.state == "PROLOGUE":
+            if cmd.lower() in ["skip", "jump", "start"]:
+                self.start_actual_escape()
+            elif cmd.lower() in ["back", "prev"]:
+                if self.current_prologue_idx > 0:
+                    self.current_prologue_idx -= 1
+                    self.sound.play_enter_click()
+                else:
+                    self.state = "START"
+            elif cmd.lower() in ["exit", "quit"]:
+                self.state = "START"
             else:
-                self.start_game()
+                # Advance prologue slide
+                if self.current_prologue_idx + 1 < len(self.prologue_screens):
+                    self.current_prologue_idx += 1
+                    self.sound.play_enter_click()
+                else:
+                    self.start_actual_escape()
             return
 
         if self.state == "PLAYING":
+            if not cmd:
+                return
             stage = self.current_stage()
             if cmd.lower() in ["quit", "exit"]:
                 self.state = "START"
@@ -139,8 +213,8 @@ class EscapeRoomGame:
                 return
 
             # Check puzzle answer
-            accepted = [str(a).strip().lower() for a in stage.get("accepted_answers", [])]
-            if cmd.lower() in accepted:
+            accepted = stage.get("accepted_answers", [])
+            if self._matches_answer(cmd, accepted):
                 # Correct!
                 self.sound.play_success_jingle()
                 self.state = "STAGE_SOLVED"
@@ -167,26 +241,28 @@ class EscapeRoomGame:
                     self.state = "VICTORY"
                     self.timer_active = False
 
+        elif self.state in ["GAME_OVER", "VICTORY"]:
+            if cmd.lower() in ["start", "restart", "retry"] or cmd == "":
+                self.time_remaining = float(self.time_limit)
+                self.current_stage_idx = 0
+                self.current_prologue_idx = 0
+                self.state = "START"
+
     def handle_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return False
             elif event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN or event.key == pygame.K_KP_ENTER:
-                    if self.state == "START" and not self.input_text:
-                        self.start_game()
-                    elif self.state == "STAGE_SOLVED" and not self.input_text:
-                        self.process_command("next")
-                    else:
-                        submitted = self.input_text
-                        self.input_text = ""
-                        self.process_command(submitted)
+                    submitted = self.input_text
+                    self.input_text = ""
+                    self.process_command(submitted)
                 elif event.key == pygame.K_BACKSPACE:
                     if self.input_text:
                         self.input_text = self.input_text[:-1]
                         self.sound.play_key_click()
                 elif event.key == pygame.K_ESCAPE:
-                    if self.state != "START":
+                    if self.state in ["PLAYING", "PROLOGUE"]:
                         self.state = "START"
                         self.timer_active = False
                     else:
@@ -194,7 +270,6 @@ class EscapeRoomGame:
                 else:
                     # Append printable unicode characters
                     if event.unicode and len(self.input_text) < 32:
-                        # Allow letters, digits, spaces, and basic math symbols
                         if event.unicode.isprintable():
                             self.input_text += event.unicode
                             self.sound.play_key_click()
@@ -287,15 +362,19 @@ class EscapeRoomGame:
 
         # Color timer brighter or alert based on state
         t_color = COLOR_LIGHTEST
-        if self.state in ["PLAYING", "STAGE_SOLVED"] and self.time_remaining < 300:
-            t_color = COLOR_LIGHT  # Low time warning
+        if self.state == "PLAYING" and self.time_remaining < 300:
+            t_color = COLOR_LIGHT
 
         timer_surf = self.ui.font_hud.render(time_str, True, t_color)
         t_rect = timer_surf.get_rect(right=header_rect.right - 14, centery=header_rect.centery)
         surf.blit(timer_surf, t_rect)
 
-        # Stage indicator in center
-        if self.state in ["PLAYING", "STAGE_SOLVED"]:
+        # Center status indicator
+        if self.state == "PROLOGUE":
+            p_badge = f"BRIEFING {self.current_prologue_idx + 1}/{len(self.prologue_screens)}"
+            p_surf = self.ui.font_body_bold.render(p_badge, True, COLOR_LIGHT)
+            surf.blit(p_surf, p_surf.get_rect(center=header_rect.center))
+        elif self.state in ["PLAYING", "STAGE_SOLVED"]:
             stage_info = f"STAGE {self.current_stage_idx + 1}/{len(self.stages)}"
             stage_surf = self.ui.font_body_bold.render(stage_info, True, COLOR_LIGHT)
             s_rect = stage_surf.get_rect(center=header_rect.center)
@@ -305,13 +384,19 @@ class EscapeRoomGame:
             surf.blit(start_badge, start_badge.get_rect(center=header_rect.center))
 
     def _draw_viewport(self, surf: pygame.Surface):
-        """Draws the retro stage image inside a decorated Game Boy frame."""
+        """Draws the retro stage or prologue image inside a decorated Game Boy frame."""
         vp_rect = pygame.Rect(20, 72, WINDOW_WIDTH - 40, 350)
         self.ui.draw_gb_panel(surf, vp_rect)
 
-        stage = self.current_stage()
-        stage_id = stage.get("id", "stage_1")
-        img = self.stage_images.get(stage_id)
+        img = None
+        if self.state == "PROLOGUE":
+            p = self.current_prologue()
+            img_file = p.get("image")
+            img = self.images.get(img_file)
+        else:
+            stage = self.current_stage()
+            img_file = stage.get("image")
+            img = self.images.get(img_file)
 
         if img:
             # Scale image smoothly to fit viewport while maintaining aspect ratio
@@ -353,6 +438,18 @@ class EscapeRoomGame:
             narrative_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, inner_rect.height - 40)
             self.ui.draw_text_wrapped(surf, intro_text, narrative_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=4)
 
+        elif self.state == "PROLOGUE":
+            p = self.current_prologue()
+            speaker = p.get("speaker", "THE PROFESSOR")
+            title = p.get("title", "TRANSMISSION")
+            t_head = self.ui.font_body_bold.render(f">> {speaker} // {title} <<", True, COLOR_LIGHTEST)
+            surf.blit(t_head, (inner_rect.left, curr_y))
+            curr_y += 26
+
+            p_text = p.get("text", "")
+            narrative_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, inner_rect.bottom - curr_y)
+            self.ui.draw_text_wrapped(surf, p_text, narrative_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=2)
+
         elif self.state == "PLAYING":
             stage = self.current_stage()
             title_txt = f"{stage.get('title', 'STAGE')} // COMBINATION LOCK"
@@ -362,20 +459,23 @@ class EscapeRoomGame:
 
             # Flavor text
             flavor = stage.get("flavor_text", "")
-            flavor_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, 42)
+            flavor_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, 65)
             used_h = self.ui.draw_text_wrapped(surf, flavor, flavor_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=2)
-            curr_y += used_h + 12
+            curr_y += used_h + 8
 
             # Puzzle prompt (highlighted)
             puzzle = stage.get("puzzle_text", "")
-            puzzle_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, 50)
-            used_h = self.ui.draw_text_wrapped(surf, puzzle, puzzle_rect, self.ui.font_body_bold, color=COLOR_LIGHTEST, line_spacing=3)
-            curr_y += used_h + 8
+            # Remaining space leaving room for status line at bottom
+            avail_puzzle_h = max(40, (inner_rect.bottom - 22) - curr_y)
+            puzzle_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, avail_puzzle_h)
+            used_h = self.ui.draw_text_wrapped(surf, puzzle, puzzle_rect, self.ui.font_body_bold, color=COLOR_LIGHTEST, line_spacing=2)
+            curr_y += used_h + 6
 
-            # Status message or hint feedback
+            # Status message or hint feedback docked cleanly
             if self.status_message:
+                status_y = min(curr_y, inner_rect.bottom - 18)
                 status_surf = self.ui.font_small.render(f">> {self.status_message}", True, self.status_color)
-                surf.blit(status_surf, (inner_rect.left, curr_y))
+                surf.blit(status_surf, (inner_rect.left, status_y))
 
         elif self.state == "STAGE_SOLVED":
             t_head = self.ui.font_body_bold.render(">> COMBINATION ACCEPTED - LOCK DISENGAGED <<", True, COLOR_LIGHTEST)
@@ -396,6 +496,18 @@ class EscapeRoomGame:
             txt_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, 80)
             self.ui.draw_text_wrapped(surf, msg, txt_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=4)
 
+        elif self.state == "VICTORY":
+            t_head = self.ui.font_body_bold.render(">> VICTORY // VAULT ESCAPED! <<", True, COLOR_LIGHTEST)
+            surf.blit(t_head, (inner_rect.left, curr_y))
+            curr_y += 32
+
+            total_elapsed = int(self.time_limit - self.time_remaining)
+            mins = total_elapsed // 60
+            secs = total_elapsed % 60
+            msg = f"Congratulations, scholars! You conquered the challenges and unlocked the archives in {mins:02d}:{secs:02d}! The Professor salutes your mathematical prowess."
+            txt_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, 80)
+            self.ui.draw_text_wrapped(surf, msg, txt_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=4)
+
     def _draw_prompt_box(self, surf: pygame.Surface):
         """Draws the bottom terminal-style input bar."""
         prompt_rect = pygame.Rect(20, 642, WINDOW_WIDTH - 40, 80)
@@ -405,11 +517,21 @@ class EscapeRoomGame:
         if self.state == "START":
             hint_txt = "COMMAND: PRESS [ENTER] OR TYPE 'START' TO BEGIN | TYPE 'QUIT' TO EXIT"
             prompt_label = "> "
+        elif self.state == "PROLOGUE":
+            is_last = (self.current_prologue_idx + 1 >= len(self.prologue_screens))
+            if is_last:
+                hint_txt = "PRESS [ENTER] TO ENTER THE VAULT | TYPE 'SKIP' TO BEGIN"
+            else:
+                hint_txt = "PRESS [ENTER] OR TYPE 'NEXT' TO CONTINUE | TYPE 'SKIP' TO BYPASS"
+            prompt_label = "> "
         elif self.state == "PLAYING":
             hint_txt = "COMMANDS: ENTER ANSWER CODE | TYPE 'HINT' FOR CLUE | TYPE 'QUIT' TO RESET"
             prompt_label = "ENTER CODE > "
         elif self.state == "STAGE_SOLVED":
             hint_txt = "STAGE CLEARED! PRESS [ENTER] TO ADVANCE TO NEXT CHALLENGE"
+            prompt_label = "> "
+        elif self.state == "VICTORY":
+            hint_txt = "CHALLENGE COMPLETE! PRESS [ENTER] OR TYPE 'START' TO PLAY AGAIN"
             prompt_label = "> "
         else:
             hint_txt = "PRESS [ENTER] TO RESTART"

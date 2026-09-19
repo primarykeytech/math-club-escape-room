@@ -28,20 +28,21 @@ def convert_to_gameboy_palette(
     src_path: str,
     dest_path: str,
     crop_top_pct: float = 0.08,
+    crop_bottom_pct: float = 0.0,
     target_size: tuple[int, int] = (320, 200),
     dither: bool = True
 ) -> str:
     """
-    Load an image, optionally crop top header text, resize to retro resolution,
+    Load an image, optionally crop top/bottom text bars, resize to retro resolution,
     and quantize to the authentic 4-color Game Boy palette.
     """
     img = Image.open(src_path).convert("RGB")
     width, height = img.size
 
-    # Crop unwanted header text if requested
-    if crop_top_pct > 0:
-        top_y = int(height * crop_top_pct)
-        img = img.crop((0, top_y, width, height))
+    top_y = int(height * crop_top_pct) if crop_top_pct > 0 else 0
+    bottom_y = int(height * (1.0 - crop_bottom_pct)) if crop_bottom_pct > 0 else height
+    if top_y < bottom_y:
+        img = img.crop((0, top_y, width, bottom_y))
 
     # Resize to retro target size with high quality downsampling
     img_resized = img.resize(target_size, Image.Resampling.LANCZOS)

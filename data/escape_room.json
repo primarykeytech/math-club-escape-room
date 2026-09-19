@@ -2,21 +2,83 @@
   "room_title": "THE VAULT OF NEWTON",
   "subtitle": "MATH CLUB RETRO ESCAPE ROOM",
   "time_limit_seconds": 3600,
-  "intro_text": "You and your team are locked inside the archival chamber of the Mathematics Society. The heavy steel-reinforced door is sealed with a digital dial lock. Carved into the stonework are ancient algebraic symbols and formulas. The digital countdown is already ticking. Solve the sequence of math challenges to unlock the door before time runs out!",
+  "intro_text": "You and your team are locked inside the archival chambers of the Mathematics Society. The heavy stone walls hold secret chambers and ancient mathematical trials. The countdown clock is ticking. Solve each challenge to unlock your path to freedom before time expires!",
+  "prologue_screens": [
+    {
+      "id": "prologue_1",
+      "speaker": "THE PROFESSOR",
+      "title": "A SUDDEN TRANSMISSION",
+      "image": "professor_intro_gb.png",
+      "text": "Greetings, scholars. You may call me 'The Professor'. For too long, mathematics has been treated as harmless ink on paper. Today, your calculations carry consequences. You find yourselves locked deep within the Archives of Newton. Only a keen mind and cold logic will earn you the key back to freedom."
+    },
+    {
+      "id": "prologue_2",
+      "speaker": "THE PROFESSOR",
+      "title": "RULES OF ENGAGEMENT",
+      "image": "professor_intro_gb.png",
+      "text": "Listen carefully to the rules of your trial:\n1. TIME LIMIT: You have 60 minutes before the vault seals permanently.\n2. INPUT: Type your answers at the prompt and press [ENTER].\n3. HINTS: If you are stuck, type 'hint' into the prompt.\n4. PENALTIES: Careless guesses will cost you 30 seconds each!\nProceed now... if you dare."
+    }
+  ],
   "stages": [
     {
       "id": "stage_1",
-      "title": "THE VAULT DOOR LOCK",
+      "title": "THE SOLITARY STONE ROOM",
+      "image": "stone_room_chest_gb.png",
+      "flavor_text": "You enter a cold, silent stone chamber. In the center rests a heavy wooden chest bound with dark iron straps, secured by a 4-digit rotary combination padlock. A note is nailed to the lid:",
+      "puzzle_text": "A school orders 64 boxes of crayons. Each box holds 30 crayons. Later, 500 crayons are used in art class. Then 240 more crayons are donated. What 4-digit number of crayons does the school have now?",
+      "accepted_answers": ["1660"],
+      "hints": [
+        "HINT 1: Calculate the total ordered first: 64 boxes x 30 crayons = 1920.",
+        "HINT 2: Subtract the used crayons, then add donated: 1920 - 500 + 240 = 1660."
+      ],
+      "penalty_seconds": 30,
+      "solved_text": "CLACK! The 4 tumblers lock into 1-6-6-0 and the padlock pops open! Inside the chest lies a brass key and an unlocked iron passage leading to an old study..."
+    },
+    {
+      "id": "stage_2",
+      "title": "THE SCHOLAR'S WOODEN DESK",
+      "image": "wooden_desk_cups_gb.png",
+      "flavor_text": "You walk up to an old wooden desk. An immovable stone cup sits on each end (left for pencils, right for pens). Scattered in the middle are writing instruments. Underneath sits a locked drawer.",
+      "puzzle_text": "Starburst has some money. She can buy either 20 pencils or 8 pens with all her money. She buys 15 pencils for $30 and some pens with the remaining money. How many pencils and pens does she buy in total? Enter: [pencils] [pens]",
+      "accepted_answers": ["15 2", "15, 2", "15,2", "15 and 2", "15 pencils, 2 pens", "15 pencils 2 pens"],
+      "hints": [
+        "HINT 1: Find price of 1 pencil: $30 / 15 = $2 each. Total money = 20 x $2 = $40.",
+        "HINT 2: Find price of 1 pen: $40 / 8 = $5 each. Money left = $40 - $30 = $10. Pens bought = $10 / $5 = 2 pens. Enter: '15 2'."
+      ],
+      "penalty_seconds": 30,
+      "solved_text": "CLICK! The weight of the 15 pencils and 2 pens in the cups triggers a hidden mechanism! The locked drawer slides open, revealing a rolled-up parchment scroll."
+    },
+    {
+      "id": "stage_3",
+      "title": "THE CAESAR CIPHER PARCHMENT",
+      "image": "parchment_cipher_gb.png",
+      "flavor_text": "An inscription on the parchment reads: 'When Julius Caesar could not see past tall people at the arena, he would shift over.' Corner scribble: 2_ + 5_ = 80.",
+      "puzzle_text": "The encoded text reads: 'XJJP YMJ AFZQY ITTW'. Solve the scribble to find the shift, then decipher the message to reveal the next step:",
+      "accepted_answers": [
+        "SEEK THE VAULT DOOR",
+        "SEEK THE VAULT DOOR.",
+        "SEEKTHEVAULTDOOR"
+      ],
+      "hints": [
+        "HINT 1: Solve 2_ + 5_ = 80. The identical missing digit is 5 (25 + 55 = 80). The Caesar shift is 5!",
+        "HINT 2: Shift each letter in 'XJJP YMJ AFZQY ITTW' backward by 5 letters (X -> S, J -> E...). Enter the deciphered words."
+      ],
+      "penalty_seconds": 30,
+      "solved_text": "EXCELLENT! You speak the deciphered command: 'SEEK THE VAULT DOOR'! As the words echo through the chamber, a concealed passage swings open, revealing the massive archival exit door!"
+    },
+    {
+      "id": "stage_4",
+      "title": "THE ARCHIVE EXIT DOOR",
       "image": "door_lock_gb.png",
-      "flavor_text": "You approach the sealed door. A mechanical combination dial glows softly above a numeric keypad. Scratched beside the lock is a cryptic equation.",
-      "puzzle_text": "CHALLENGE 1: What is the sum of all prime numbers between 10 and 25?",
+      "flavor_text": "Following the parchment directive, you stand before the reinforced vault exit door. A heavy combination dial bars the final exit.",
+      "puzzle_text": "FINAL CHALLENGE: What is the sum of all prime numbers between 10 and 25?",
       "accepted_answers": ["60"],
       "hints": [
         "HINT 1: Identify primes between 10 and 25: 11, 13, 17, 19, 23.",
         "HINT 2: Compute 11 + 13 + 17 + 19 + 23 = 60."
       ],
       "penalty_seconds": 30,
-      "solved_text": "CLANK! The combination lock releases! The dial spins freely and the first heavy bolt retracts."
+      "solved_text": "CLANK! The vault door combination lock releases! The heavy steel bolts retract, the door swings open, and you have escaped the Vault of Newton!"
     }
   ]
 }

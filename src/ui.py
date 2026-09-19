@@ -45,33 +45,39 @@ class RetroUI:
             surface.set_at((cx, cy), bg_color)
 
     def draw_text_wrapped(self, surface: pygame.Surface, text: str, rect: pygame.Rect, font: pygame.font.Font, color=COLOR_LIGHTEST, line_spacing=4) -> int:
-        """Render text wrapped within a bounding rect and return total rendered height."""
-        words = text.split(' ')
+        """Render text wrapped within a bounding rect (supporting newlines) and return total rendered height."""
+        paragraphs = text.split('\n')
         lines = []
-        current_line = []
 
-        for word in words:
-            test_line = ' '.join(current_line + [word])
-            w, _ = font.size(test_line)
-            if w <= rect.width:
-                current_line.append(word)
-            else:
-                if current_line:
-                    lines.append(' '.join(current_line))
-                    current_line = [word]
+        for p in paragraphs:
+            if not p.strip():
+                lines.append("")
+                continue
+            words = p.split(' ')
+            current_line = []
+            for word in words:
+                test_line = ' '.join(current_line + [word])
+                w, _ = font.size(test_line)
+                if w <= rect.width:
+                    current_line.append(word)
                 else:
-                    lines.append(word)
-                    current_line = []
-        if current_line:
-            lines.append(' '.join(current_line))
+                    if current_line:
+                        lines.append(' '.join(current_line))
+                        current_line = [word]
+                    else:
+                        lines.append(word)
+                        current_line = []
+            if current_line:
+                lines.append(' '.join(current_line))
 
         y = rect.top
         font_height = font.get_linesize()
         for line in lines:
             if y + font_height > rect.bottom:
                 break
-            rendered = font.render(line, True, color)
-            surface.blit(rendered, (rect.left, y))
+            if line:
+                rendered = font.render(line, True, color)
+                surface.blit(rendered, (rect.left, y))
             y += font_height + line_spacing
         return y - rect.top
 
