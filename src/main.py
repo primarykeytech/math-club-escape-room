@@ -37,6 +37,8 @@ class EscapeRoomGame:
         self.clock = pygame.time.Clock()
         self.ui = RetroUI()
         self.sound = RetroSoundFX()
+        # Start menacing theme music on title screen
+        self.sound.play_theme_music()
 
         # Load game data
         self.data = self._load_data(data_path)
@@ -97,6 +99,15 @@ class EscapeRoomGame:
                 if os.path.exists(img_path) and img_file not in self.images:
                     self.images[img_file] = pygame.image.load(img_path).convert()
 
+        # Load ending screen images
+        for key in ["victory_screen", "game_over_screen"]:
+            screen_cfg = self.data.get(key, {})
+            img_file = screen_cfg.get("image")
+            if img_file:
+                img_path = os.path.join("assets", "images", img_file)
+                if os.path.exists(img_path) and img_file not in self.images:
+                    self.images[img_file] = pygame.image.load(img_path).convert()
+
     def current_stage(self) -> dict:
         if 0 <= self.current_stage_idx < len(self.stages):
             return self.stages[self.current_stage_idx]
@@ -127,6 +138,8 @@ class EscapeRoomGame:
         self.status_message = "STAGE 1 INITIATED. SOLVE THE LOCK!"
         self.status_color = COLOR_LIGHTEST
         self.sound.play_enter_click()
+        # Fade out menacing music as puzzle tension begins
+        self.sound.fadeout_music(1200)
 
     def _matches_answer(self, cmd: str, accepted_answers: list) -> bool:
         import re
@@ -198,6 +211,7 @@ class EscapeRoomGame:
             if cmd.lower() in ["quit", "exit"]:
                 self.state = "START"
                 self.timer_active = False
+                self.sound.play_theme_music()
                 return
 
             if cmd.lower() == "hint":
@@ -240,13 +254,16 @@ class EscapeRoomGame:
                 else:
                     self.state = "VICTORY"
                     self.timer_active = False
+                    self.sound.play_victory_fanfare()
 
         elif self.state in ["GAME_OVER", "VICTORY"]:
             if cmd.lower() in ["start", "restart", "retry"] or cmd == "":
                 self.time_remaining = float(self.time_limit)
                 self.current_stage_idx = 0
                 self.current_prologue_idx = 0
+                self.hints_revealed = 0
                 self.state = "START"
+                self.sound.play_theme_music()
 
     def handle_events(self):
         for event in pygame.event.get():
@@ -265,6 +282,7 @@ class EscapeRoomGame:
                     if self.state in ["PLAYING", "PROLOGUE"]:
                         self.state = "START"
                         self.timer_active = False
+                        self.sound.play_theme_music()
                     else:
                         return False
                 else:
@@ -287,6 +305,8 @@ class EscapeRoomGame:
                 self.timer_active = False
                 self.state = "GAME_OVER"
                 self.sound.play_error_buzz()
+                # Play menacing theme in background while The Professor gloats
+                self.sound.play_theme_music()
         else:
             self.last_tick_time = now
 
@@ -364,6 +384,8 @@ class EscapeRoomGame:
         t_color = COLOR_LIGHTEST
         if self.state == "PLAYING" and self.time_remaining < 300:
             t_color = COLOR_LIGHT
+        elif self.state == "GAME_OVER":
+            t_color = COLOR_LIGHTEST
 
         timer_surf = self.ui.font_hud.render(time_str, True, t_color)
         t_rect = timer_surf.get_rect(right=header_rect.right - 14, centery=header_rect.centery)
@@ -382,9 +404,17 @@ class EscapeRoomGame:
         elif self.state == "START":
             start_badge = self.ui.font_body.render("READY TO ESCAPE?", True, COLOR_LIGHT)
             surf.blit(start_badge, start_badge.get_rect(center=header_rect.center))
+        elif self.state == "VICTORY":
+            v_badge = "VAULT ESCAPED // CONQUERED"
+            v_surf = self.ui.font_body_bold.render(v_badge, True, COLOR_LIGHTEST)
+            surf.blit(v_surf, v_surf.get_rect(center=header_rect.center))
+        elif self.state == "GAME_OVER":
+            g_badge = "SYSTEM LOCKOUT // DEFEAT"
+            g_surf = self.ui.font_body_bold.render(g_badge, True, COLOR_LIGHT)
+            surf.blit(g_surf, g_surf.get_rect(center=header_rect.center))
 
     def _draw_viewport(self, surf: pygame.Surface):
-        """Draws the retro stage or prologue image inside a decorated Game Boy frame."""
+        """Draws the retro stage, prologue, or closing image inside a decorated Game Boy frame."""
         vp_rect = pygame.Rect(20, 72, WINDOW_WIDTH - 40, 350)
         self.ui.draw_gb_panel(surf, vp_rect)
 
@@ -392,6 +422,14 @@ class EscapeRoomGame:
         if self.state == "PROLOGUE":
             p = self.current_prologue()
             img_file = p.get("image")
+            img = self.images.get(img_file)
+        elif self.state == "VICTORY":
+            v_cfg = self.data.get("victory_screen", {})
+            img_file = v_cfg.get("image", "professor_angry_gb.png")
+            img = self.images.get(img_file)
+        elif self.state == "GAME_OVER":
+            g_cfg = self.data.get("game_over_screen", {})
+            img_file = g_cfg.get("image", "professor_gloating_gb.png")
             img = self.images.get(img_file)
         else:
             stage = self.current_stage()
@@ -465,7 +503,6 @@ class EscapeRoomGame:
 
             # Puzzle prompt (highlighted)
             puzzle = stage.get("puzzle_text", "")
-            # Remaining space leaving room for status line at bottom
             avail_puzzle_h = max(40, (inner_rect.bottom - 22) - curr_y)
             puzzle_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, avail_puzzle_h)
             used_h = self.ui.draw_text_wrapped(surf, puzzle, puzzle_rect, self.ui.font_body_bold, color=COLOR_LIGHTEST, line_spacing=2)
@@ -488,25 +525,43 @@ class EscapeRoomGame:
             self.ui.draw_text_wrapped(surf, solved_txt, txt_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=4)
 
         elif self.state == "GAME_OVER":
-            t_head = self.ui.font_body_bold.render(">> SYSTEM LOCKOUT // TIME EXPIRED <<", True, COLOR_LIGHTEST)
+            g_cfg = self.data.get("game_over_screen", {})
+            speaker = g_cfg.get("speaker", "THE PROFESSOR")
+            title = g_cfg.get("title", "GLOATING TRIUMPH")
+            t_head = self.ui.font_body_bold.render(f">> {speaker} // {title} <<", True, COLOR_LIGHTEST)
             surf.blit(t_head, (inner_rect.left, curr_y))
-            curr_y += 32
+            curr_y += 24
 
-            msg = "The vault security seal engages permanently. The math puzzle remains unsolved. Type 'START' to retry."
-            txt_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, 80)
-            self.ui.draw_text_wrapped(surf, msg, txt_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=4)
+            dialogue = g_cfg.get("dialogue", "BWAHAHAHA! The countdown reaches zero! You lacked the talent to defeat my challenges!")
+            dialogue_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, 108)
+            used_h = self.ui.draw_text_wrapped(surf, dialogue, dialogue_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=2)
+            curr_y += used_h + 8
+
+            stats_y = min(curr_y, inner_rect.bottom - 18)
+            stats_txt = f">> STAGES CLEARED: {self.current_stage_idx}/{len(self.stages)} | VAULT PERMANENTLY SEALED"
+            stats_surf = self.ui.font_small.render(stats_txt, True, COLOR_LIGHTEST)
+            surf.blit(stats_surf, (inner_rect.left, stats_y))
 
         elif self.state == "VICTORY":
-            t_head = self.ui.font_body_bold.render(">> VICTORY // VAULT ESCAPED! <<", True, COLOR_LIGHTEST)
+            v_cfg = self.data.get("victory_screen", {})
+            speaker = v_cfg.get("speaker", "THE PROFESSOR")
+            title = v_cfg.get("title", "ENRAGED RETRIBUTION")
+            t_head = self.ui.font_body_bold.render(f">> {speaker} // {title} <<", True, COLOR_LIGHTEST)
             surf.blit(t_head, (inner_rect.left, curr_y))
-            curr_y += 32
+            curr_y += 24
+
+            dialogue = v_cfg.get("dialogue", "WHAT?! IMPOSSIBLE! You breached my vault?! I will return with an even more devious challenge!")
+            dialogue_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, 108)
+            used_h = self.ui.draw_text_wrapped(surf, dialogue, dialogue_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=2)
+            curr_y += used_h + 8
 
             total_elapsed = int(self.time_limit - self.time_remaining)
             mins = total_elapsed // 60
             secs = total_elapsed % 60
-            msg = f"Congratulations, scholars! You conquered the challenges and unlocked the archives in {mins:02d}:{secs:02d}! The Professor salutes your mathematical prowess."
-            txt_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, 80)
-            self.ui.draw_text_wrapped(surf, msg, txt_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=4)
+            stats_y = min(curr_y, inner_rect.bottom - 18)
+            stats_txt = f">> ESCAPE TIME: {mins:02d}:{secs:02d} | ALL {len(self.stages)} VAULT CHALLENGES CONQUERED!"
+            stats_surf = self.ui.font_small.render(stats_txt, True, COLOR_LIGHTEST)
+            surf.blit(stats_surf, (inner_rect.left, stats_y))
 
     def _draw_prompt_box(self, surf: pygame.Surface):
         """Draws the bottom terminal-style input bar."""
@@ -531,7 +586,10 @@ class EscapeRoomGame:
             hint_txt = "STAGE CLEARED! PRESS [ENTER] TO ADVANCE TO NEXT CHALLENGE"
             prompt_label = "> "
         elif self.state == "VICTORY":
-            hint_txt = "CHALLENGE COMPLETE! PRESS [ENTER] OR TYPE 'START' TO PLAY AGAIN"
+            hint_txt = "VAULT CONQUERED! PRESS [ENTER] OR TYPE 'START' TO PLAY AGAIN"
+            prompt_label = "> "
+        elif self.state == "GAME_OVER":
+            hint_txt = "VAULT SEALED! PRESS [ENTER] OR TYPE 'START' TO RETRY"
             prompt_label = "> "
         else:
             hint_txt = "PRESS [ENTER] TO RESTART"

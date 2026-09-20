@@ -56,7 +56,9 @@ python src/main.py
 - **Dynamic Puzzles via JSON**: Puzzles, hints, images, time limits, and penalty rules are decoupled in [`data/escape_room.json`](data/escape_room.json) for easy editing.
 - **Terminal-Style Prompt**: Real-time freeform keyboard input with blinking pixel cursor.
 - **Ticking Timer & Penalties**: Configurable countdown clock with time deductions for wrong attempts.
-- **Procedural 8-Bit Audio**: Real-time square/triangle wave sound synthesis for authentic clicks, error buzzers, and solve chimes.
+- **Original 8-Bit Menacing Theme Song**: Authentic chiptune soundtrack in D minor with pulse leads, eerie arpeggios, and stepped triangle bass on title and prologue screens.
+- **Procedural 8-Bit Audio Effects**: Real-time square/triangle wave sound synthesis for authentic clicks, error buzzers, fanfare chimes, and solve jingles.
+- **Dynamic Closing Screens**: Custom Game Boy graphics and dialogues with The Professor—furious concession and vows of return upon victory, or merciless gloating upon system lockout/timeout.
 - **Help System**: Type `hint` to reveal tiered hints per challenge.
 
 ## Project Structure

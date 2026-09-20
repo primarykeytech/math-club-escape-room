@@ -108,5 +108,17 @@
       "penalty_seconds": 30,
       "solved_text": "CLANK! The vault door combination lock releases! The heavy steel bolts retract, the door swings open, and you have escaped the Vault of Newton!"
     }
-  ]
+  ],
+  "victory_screen": {
+    "speaker": "THE PROFESSOR",
+    "title": "ENRAGED CONCESSION",
+    "image": "professor_angry_gb.png",
+    "dialogue": "WHAT?! IMPOSSIBLE! You solved the primes and breached my vault?! How dare you unravel my masterpieces so effortlessly! Do not celebrate so quickly, scholars... This was merely an appetizer. I will return with an even more devious, insurmountable challenge! Next time, you shall not escape!"
+  },
+  "game_over_screen": {
+    "speaker": "THE PROFESSOR",
+    "title": "GLOATING TRIUMPH",
+    "image": "professor_gloating_gb.png",
+    "dialogue": "BWAHAHAHA! The countdown reaches zero! The heavy iron bolts slam shut forever! Did you truly believe your elementary minds could defeat my grand designs? You simply were not talented enough to defeat my challenges! The archives are sealed, and you remain trapped!"
+  }
 }

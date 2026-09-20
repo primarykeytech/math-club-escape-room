@@ -15,6 +15,48 @@ class RetroSoundFX:
             self.enabled = True
         except Exception:
             self.enabled = False
+        self.music_playing = False
+
+    def play_theme_music(self, path: str = "assets/sounds/menacing_theme.wav", volume: float = 0.5):
+        """Play the menacing theme on loop."""
+        if not self.enabled:
+            return
+        import os
+        if not os.path.exists(path):
+            try:
+                from src.music_generator import build_menacing_theme_wav
+                build_menacing_theme_wav(path)
+            except Exception as e:
+                print(f"[WARN] Could not generate theme music: {e}")
+                return
+
+        try:
+            pygame.mixer.music.load(path)
+            pygame.mixer.music.set_volume(volume)
+            pygame.mixer.music.play(-1)  # Loop indefinitely
+            self.music_playing = True
+        except Exception as e:
+            print(f"[WARN] Error playing music: {e}")
+
+    def fadeout_music(self, duration_ms: int = 1200):
+        """Smoothly fade out theme music."""
+        if not self.enabled:
+            return
+        try:
+            pygame.mixer.music.fadeout(duration_ms)
+            self.music_playing = False
+        except Exception:
+            pass
+
+    def stop_music(self):
+        """Instantly stop music."""
+        if not self.enabled:
+            return
+        try:
+            pygame.mixer.music.stop()
+            self.music_playing = False
+        except Exception:
+            pass
 
     def _generate_tone(self, freq: float, duration: float, wave_type: str = "square", volume: float = 0.3) -> pygame.mixer.Sound:
         if not self.enabled:
@@ -81,6 +123,27 @@ class RetroSoundFX:
             n_samples = int(self.sample_rate * 0.08)
             t = np.linspace(0, 0.08, n_samples, False)
             wave = np.sign(np.sin(2 * np.pi * f * t)) * 0.25
+            total_samples.extend(wave)
+        sound_array = (np.array(total_samples) * 32767).astype(np.int16)
+        init_info = pygame.mixer.get_init()
+        if init_info:
+            _, _, channels = init_info
+            if channels == 2:
+                sound_array = np.column_stack((sound_array, sound_array))
+        snd = pygame.sndarray.make_sound(sound_array)
+        snd.play()
+
+    def play_victory_fanfare(self):
+        if not self.enabled:
+            return
+        # Triumphant 5-note retro fanfare: G4 -> C5 -> E5 -> G5 -> C6
+        notes = [(392.0, 0.12), (523.25, 0.12), (659.25, 0.12), (783.99, 0.16), (1046.50, 0.45)]
+        total_samples = []
+        for f, dur in notes:
+            n_samples = int(self.sample_rate * dur)
+            t = np.linspace(0, dur, n_samples, False)
+            decay = np.linspace(1.0, 0.4 if dur < 0.3 else 0.05, n_samples)
+            wave = np.sign(np.sin(2 * np.pi * f * t)) * 0.28 * decay
             total_samples.extend(wave)
         sound_array = (np.array(total_samples) * 32767).astype(np.int16)
         init_info = pygame.mixer.get_init()
