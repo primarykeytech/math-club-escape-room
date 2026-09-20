@@ -64,13 +64,27 @@
         "HINT 2: Shift each letter in 'XJJP YMJ AFZQY ITTW' backward by 5 letters (X -> S, J -> E...). Enter the deciphered words."
       ],
       "penalty_seconds": 30,
-      "solved_text": "EXCELLENT! You speak the deciphered command: 'SEEK THE VAULT DOOR'! As the words echo through the chamber, a concealed passage swings open, revealing the massive archival exit door!"
+      "solved_text": "EXCELLENT! You speak the deciphered command: 'SEEK THE VAULT DOOR'! As the words echo through the chamber, a concealed passage swings open, revealing an ancient stone corridor!"
     },
     {
       "id": "stage_4",
+      "title": "THE SCALE OF SUN AND MOON",
+      "image": "balance_scale_gb.png",
+      "flavor_text": "Before you stands an ancient brass balance scale atop a stone altar flanked by torchlight.",
+      "puzzle_text": "Tablet 1: 3 Suns + 2 Moons balance 54 oz.\nTablet 2: 1 Sun + 2 Moons balance 30 oz.\nEnter the combined weight (in oz) of 1 Sun and 1 Moon to balance the altar:",
+      "accepted_answers": ["21", "21 oz", "21 ounces", "21oz"],
+      "hints": [
+        "HINT 1: Compare Tablet 1 and Tablet 2. The difference of 24 oz (54 - 30) is caused by 2 Suns. What does 1 Sun weigh?",
+        "HINT 2: 1 Sun = 12 oz. In Tablet 2, 12 + 2 Moons = 30 oz -> 2 Moons = 18 oz -> 1 Moon = 9 oz. Combined: 12 + 9 = 21 oz."
+      ],
+      "penalty_seconds": 30,
+      "solved_text": "CLANG! You place 21 oz on the counterweight pan. The brass beam balances perfectly and a heavy iron portcullis rises, revealing the final vault exit door!"
+    },
+    {
+      "id": "stage_5",
       "title": "THE ARCHIVE EXIT DOOR",
       "image": "door_lock_gb.png",
-      "flavor_text": "Following the parchment directive, you stand before the reinforced vault exit door. A heavy combination dial bars the final exit.",
+      "flavor_text": "Beyond the portcullis, you stand before the massive reinforced vault exit door. An intricate combination dial bars the final exit.",
       "puzzle_text": "FINAL CHALLENGE: What is the sum of all prime numbers between 10 and 25?",
       "accepted_answers": ["60"],
       "hints": [
