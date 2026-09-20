@@ -78,13 +78,27 @@
         "HINT 2: 1 Sun = 12 oz. In Tablet 2, 12 + 2 Moons = 30 oz -> 2 Moons = 18 oz -> 1 Moon = 9 oz. Combined: 12 + 9 = 21 oz."
       ],
       "penalty_seconds": 30,
-      "solved_text": "CLANG! You place 21 oz on the counterweight pan. The brass beam balances perfectly and a heavy iron portcullis rises, revealing the final vault exit door!"
+      "solved_text": "CLANG! You place 21 oz on the counterweight pan. The brass beam balances perfectly and a stone archway opens, revealing an ancient mosaic chamber!"
     },
     {
       "id": "stage_5",
+      "title": "THE MAGIC SQUARE MOSAIC",
+      "image": "magic_square_gb.png",
+      "flavor_text": "You step onto a mystical 3x3 stone floor. Runes on the border state: 'Every row, column, and diagonal must unite to equal the same sacred sum.'",
+      "puzzle_text": "Deduce the missing numbers on tiles [A], [B], and [C]. Enter the 3-digit code [A][B][C] to disengage the floor traps:",
+      "accepted_answers": ["132", "1 3 2", "1, 3, 2", "1,3,2"],
+      "hints": [
+        "HINT 1: Find the magic constant sum using complete rows or diagonals (e.g. 8 + 5 + 2 = 15, or 6 + 7 + 2 = 15). The magic sum is 15!",
+        "HINT 2: Row 1: 8 + A + 6 = 15 -> A = 1. Row 2: B + 5 + 7 = 15 -> B = 3. Row 3: 4 + 9 + C = 15 -> C = 2. Code is 132."
+      ],
+      "penalty_seconds": 30,
+      "solved_text": "RUMBLE! As you enter 1-3-2, stone tiles A, B, and C lock into place with a heavy click! The floor traps disengage and the archway to the final vault door rises!"
+    },
+    {
+      "id": "stage_6",
       "title": "THE ARCHIVE EXIT DOOR",
       "image": "door_lock_gb.png",
-      "flavor_text": "Beyond the portcullis, you stand before the massive reinforced vault exit door. An intricate combination dial bars the final exit.",
+      "flavor_text": "You stand before the massive reinforced vault exit door. An intricate combination dial bars the final exit.",
       "puzzle_text": "FINAL CHALLENGE: What is the sum of all prime numbers between 10 and 25?",
       "accepted_answers": ["60"],
       "hints": [
