@@ -1,4 +1,3 @@
-
 # Math Club Retro Escape Room (Game Boy 4-Color)
 
 A retro-style math escape room game built in Python using `pygame-ce`. Styled with an authentic 4-color Game Boy DMG palette, CRT scanlines, procedural 8-bit audio effects, and customizable JSON challenge definitions.
@@ -62,7 +61,7 @@ python src/main.py
 - **Dynamic Closing Screens**: Custom Game Boy graphics and dialogues with The Professor—furious concession and vows of return upon victory, or merciless gloating upon system lockout/timeout.
 - **Help System**: Type `hint` to reveal tiered hints per challenge.
 
-<img width="874" height="631" alt="Screenshot 2026-09-19 210304" src="https://github.com/user-attachments/assets/09b7fa9c-39f5-424a-965d-18babc6ad493" />
+<img width="870" height="463" alt="newton1" src="https://github.com/user-attachments/assets/be557ea7-02fd-4d9e-b105-40880f562507" />
 
 <img width="874" height="631" alt="newton2" src="https://github.com/user-attachments/assets/ea25fc69-462f-4f63-a4ae-9ee1eaac541b" />
 
