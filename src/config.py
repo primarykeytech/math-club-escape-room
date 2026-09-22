@@ -15,7 +15,7 @@ COLOR_LIGHT = (139, 172, 15)    # #8bac0f (Main UI surfaces, active icons)
 COLOR_LIGHTEST = (155, 188, 15) # #9bbc0f (Brightest text, highlights, cursor)
 
 # Game Rules & Defaults
-DEFAULT_TIME_LIMIT_SECONDS = 60 * 60  # 60 minutes
+DEFAULT_TIME_LIMIT_SECONDS = 30 * 60  # 30 minutes
 WRONG_ANSWER_PENALTY_SECONDS = 30     # 30 second penalty for incorrect attempt
 CURSOR_BLINK_RATE_MS = 500
 

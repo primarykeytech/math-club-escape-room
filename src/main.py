@@ -460,6 +460,16 @@ class EscapeRoomGame:
             ph = self.ui.font_body.render("[ NO VISUAL SIGNAL ]", True, COLOR_LIGHT)
             surf.blit(ph, ph.get_rect(center=vp_rect.center))
 
+    def _format_narrative_text(self, text: str) -> str:
+        """Dynamically substitutes placeholders like {time_limit_minutes} and {penalty_seconds}."""
+        if not text:
+            return ""
+        time_mins = int(self.time_limit // 60)
+        formatted = text.replace("{time_limit_minutes}", str(time_mins))
+        formatted = formatted.replace("60 minutes", f"{time_mins} minutes")
+        formatted = formatted.replace("{penalty_seconds}", str(WRONG_ANSWER_PENALTY_SECONDS))
+        return formatted
+
     def _draw_narrative_box(self, surf: pygame.Surface):
         """Draws room narrative, challenge, and status in the middle-lower box."""
         box_rect = pygame.Rect(20, 432, WINDOW_WIDTH - 40, 200)
@@ -474,7 +484,7 @@ class EscapeRoomGame:
             surf.blit(t_head, (inner_rect.left, curr_y))
             curr_y += 28
 
-            intro_text = self.data.get("intro_text", "")
+            intro_text = self._format_narrative_text(self.data.get("intro_text", ""))
             narrative_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, inner_rect.height - 40)
             self.ui.draw_text_wrapped(surf, intro_text, narrative_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=4)
 
@@ -486,7 +496,7 @@ class EscapeRoomGame:
             surf.blit(t_head, (inner_rect.left, curr_y))
             curr_y += 26
 
-            p_text = p.get("text", "")
+            p_text = self._format_narrative_text(p.get("text", ""))
             narrative_rect = pygame.Rect(inner_rect.left, curr_y, inner_rect.width, inner_rect.bottom - curr_y)
             self.ui.draw_text_wrapped(surf, p_text, narrative_rect, self.ui.font_body, color=COLOR_LIGHT, line_spacing=2)
 

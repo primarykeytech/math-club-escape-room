@@ -1,7 +1,6 @@
 {
   "room_title": "THE VAULT OF NEWTON",
   "subtitle": "MATH CLUB RETRO ESCAPE ROOM",
-  "time_limit_seconds": 3600,
   "intro_text": "You and your team are locked inside the archival chambers of the Mathematics Society. The heavy stone walls hold secret chambers and ancient mathematical trials. The countdown clock is ticking. Solve each challenge to unlock your path to freedom before time expires!",
   "prologue_screens": [
     {
@@ -16,7 +15,7 @@
       "speaker": "THE PROFESSOR",
       "title": "RULES OF ENGAGEMENT",
       "image": "professor_intro_gb.png",
-      "text": "Listen carefully to the rules of your trial:\n1. TIME LIMIT: You have 60 minutes before the vault seals permanently.\n2. INPUT: Type your answers at the prompt and press [ENTER].\n3. HINTS: If you are stuck, type 'hint' into the prompt.\n4. PENALTIES: Careless guesses will cost you 30 seconds each!\nProceed now... if you dare."
+      "text": "Listen carefully to the rules of your trial:\n1. TIME LIMIT: You have {time_limit_minutes} minutes before the vault seals permanently.\n2. INPUT: Type your answers at the prompt and press [ENTER].\n3. HINTS: If you are stuck, type 'hint' into the prompt.\n4. PENALTIES: Careless guesses will cost you {penalty_seconds} seconds each!\nProceed now... if you dare."
     }
   ],
   "stages": [
