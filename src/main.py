@@ -121,6 +121,8 @@ class EscapeRoomGame:
     def start_game(self):
         """Called from START screen: routes to prologue if available, else begins play."""
         self.input_text = ""
+        # Stop theme music immediately on the first press of Enter to start the game
+        self.sound.stop_music()
         if self.prologue_screens:
             self.state = "PROLOGUE"
             self.current_prologue_idx = 0
