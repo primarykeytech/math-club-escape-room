@@ -100,10 +100,10 @@
       "image": "door_lock_gb.png",
       "flavor_text": "You stand before the massive reinforced vault exit door. An intricate combination dial bars the final exit.",
       "puzzle_text": "FINAL CHALLENGE: What is the sum of all prime numbers between 10 and 25?",
-      "accepted_answers": ["60"],
+      "accepted_answers": ["83"],
       "hints": [
         "HINT 1: Identify primes between 10 and 25: 11, 13, 17, 19, 23.",
-        "HINT 2: Compute 11 + 13 + 17 + 19 + 23 = 60."
+        "HINT 2: Compute 11 + 13 + 17 + 19 + 23 = 83."
       ],
       "penalty_seconds": 30,
       "solved_text": "CLANK! The vault door combination lock releases! The heavy steel bolts retract, the door swings open, and you have escaped the Vault of Newton!"
